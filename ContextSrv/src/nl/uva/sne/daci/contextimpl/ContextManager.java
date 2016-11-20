@@ -166,6 +166,7 @@ public class ContextManager {
 		return interTenantKeyPrefix + trustor;
 	}
 
+	
 	/**
 	 * Create a context representing the issuer asserts a criteria inside the policy p.
 	 *  

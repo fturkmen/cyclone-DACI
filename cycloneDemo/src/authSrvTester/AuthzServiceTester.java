@@ -33,9 +33,20 @@ public class AuthzServiceTester {
 	
 	private ArrayList<String> redisInsertedKeys;
 	public static final String DOMAIN = "demo-uva";
-	private static final String BIOINFO_UC1_POLICY = "policies/BioinformaticsCycloneUC1Policy-NoNamespace.xml";
-	private static final String PROVIDER_LAL_POLICY = "policies/BioinformaticsCycloneLAL_ProviderPolicySet.xml";
-	private static final String INTERTENANT_SS_POLICY = "policies/BioinformaticsCyclone_SS_IntratenantPolicy.xml";
+	
+	private static final String INTRATENANT_POLICY1 = "policies/BioinformaticsCyclone.IFB1_Tenant.xml";
+	private static final String INTRATENANT_POLICY2 = "policies/BioinformaticsCyclone.IFB2_Tenant.xml";
+	private static final String INTRATENANT_POLICY3 = "policies/BioinformaticsCyclone.ICL_Tenant.xml";
+	
+	
+	private static final String PROVIDER_POLICY1 = "policies/BioinformaticsCyclone.LAL_ProviderPolicySet.xml";
+	private static final String PROVIDER_POLICY2 = "policies/BioinformaticsCyclone.WTHI_ProviderPolicySet.xml";
+	
+	private static final String INTERTENANT_POLICY1 = "policies/BioinformaticsCyclone.IntertenantPoliciesIFB1_Tenant.xml";
+	private static final String INTERTENANT_POLICY2 = "policies/BioinformaticsCyclone.IntertenantPoliciesIFB2_Tenant.xml";
+	
+	
+	
 	List<AuthzRequest> authzRequests;
 	
 	private static final String SUBJECT_ID = "urn:oasis:names:tc:xacml:1.0:subject:subject-id";	
@@ -47,10 +58,10 @@ public class AuthzServiceTester {
 	private AuthzSvcImpl authzsvc;
 	private ContextSvcImpl ctxsvc;
 	
-	ContextManager ctxMan;
+	
 	
 
-	
+
 	private List<AuthzRequest> getRequests(){
 		return authzRequests;
 	}
@@ -60,15 +71,10 @@ public class AuthzServiceTester {
 		
 		ast.initSampleRequests();
 		for (AuthzRequest ar : ast.getRequests()){
-			System.out.println(ast.checkAuthorization("http://axiomatics.com/alfa/identifier/BioinformaticsCyclone.UC1Policy", ar).getDecision().toString());
+			System.out.println(ast.checkAuthorization("IFB1_Tenant", ar).getDecision().toString());
 		}
+		
 	}
-	
-	
-	
-	
-	
-	
 	
 	
 	/*Flow
@@ -76,12 +82,14 @@ public class AuthzServiceTester {
 	 * 	   (1.1) Tenant identifiers are given by the user
 	 * 	   (1.2) Set provider (map to ctxMan.getProviderPolicyKey()) and 
 	 * 			tenant policies (by using ctxMan.getInterTenantPolicyKey(pId))... Note: Tenant policies are set by PsetId and the policy itself
+	 * 
 	 * (2) Instantiate context service and initialize it by loading policies (provider, inter-tenant) 
 	 *     (2.1) Load context information for each Tenant from redis
 	 *     (2.2) Load provider (2.2.1) and intertenant contexts (2.2.2) --> ctxMan.loadProviderContexts() and ctxMan.loadInterTenantContexts()
 	 *     		(2.2.1) Create Context with the pair <urn:oasis:names:tc:xacml:1.0:subject:subject-id = provider, provider policy>
 	 *     				where policy is retrieved from redis by "this.providerPolicyKey = urn:eu:geysers:daci:" + DOMAIN + ":policy:xacml3:provider:root"
 	 *     		(2.2.2) Load internant contexts by using the identifiers set (setupTenantIdentifiers(List<String>)) 
+	 * 
 	 * (3) Instantiate Authorization Service, initialize it by creating a service pool
 	 * */
 	public AuthzServiceTester(){
@@ -99,20 +107,82 @@ public class AuthzServiceTester {
 			System.err.println("Exception in Constructor");
 		}
 		
-		
 		ctxsvc = new ContextSvcImpl(DOMAIN, REDIS_SERVER_ADDRESS);
 		ctxsvc.init();
-		
-		
-		/////////////////////
-		
-		/////////////////////
 		
 		/*Instantiate authorization service ...*/
 		authzsvc = new AuthzSvcImpl(ctxsvc);
 		authzsvc.init();
-		
 	}
+	
+	
+	
+	
+	private Map<String, String> loadIntertenantPolicies(String policyName, ContextManager ctxMan, Jedis jedis){
+		try {
+			// load inter-tenant policies to redis
+			Map<String, String> tenantPolicies = PolicySetupUtil.loadPolicies(policyName);
+			for(String pId : tenantPolicies.keySet()) {				
+				String pKey = ctxMan.getInterTenantPolicyKey(pId);
+				redisInsertedKeys.add(pKey);
+				jedis.set(pKey, tenantPolicies.get(pId));			
+			}
+			return tenantPolicies;
+		}catch(Exception e){
+			System.err.println("Exception in loadIntertenantPolicies" + e.getMessage());
+			return null;
+		}finally{
+			jedis.disconnect();
+		}
+	}
+	
+	private Map<String, String> loadIntratenantPolicies(String policyName, ContextManager ctxMan, Jedis jedis){
+		try{
+			Map<String, String> intraTenantPolicies = PolicySetupUtil.loadPolicyorPolicySets(policyName);//loadPolicies(BIOINFO_UC1_POLICY);
+			String authzPolicyKeyPrefix = String.format( nl.uva.sne.daci.authzsvcimp.Configuration.REDIS_KEYPREFIX_FORMAT, DOMAIN);			
+			for(String pId : intraTenantPolicies.keySet()) {
+				String pKey = authzPolicyKeyPrefix + ":" + pId;
+				redisInsertedKeys.add(pKey);			
+				jedis.set(pKey, intraTenantPolicies.get(pId));
+				System.out.println("Put intra-tenant policy:" + pKey);
+			}
+			return intraTenantPolicies;
+		}catch(Exception e){
+			System.err.println("Exception in loadIntratenantPolicies"+ e.getMessage());
+			return null;
+		}finally{
+			jedis.disconnect();
+		}
+	}
+	
+	
+	/*Setup policies ...*/
+	private List<String> setupPolicies() throws Exception {
+		
+		ContextManager ctxMan = new ContextManager(DOMAIN, REDIS_SERVER_ADDRESS);
+		
+		
+		Jedis jedis = new Jedis(REDIS_SERVER_ADDRESS);
+		try {	
+			// Load provider policies to redis
+			redisInsertedKeys.add(ctxMan.getProviderPolicyKey());
+			jedis.set(ctxMan.getProviderPolicyKey(), PolicySetupUtil.loadPolicySet(PROVIDER_POLICY1));
+			
+			/*WE HAVE TO SET INTRA TENANT POLICIES : Slipstream/IFBPortal policies ...*/
+			
+			loadIntertenantPolicies(INTERTENANT_POLICY1, ctxMan, jedis);
+			loadIntertenantPolicies(INTERTENANT_POLICY2, ctxMan, jedis);
+
+			Map<String, String> tenantPolicies = loadIntratenantPolicies(INTRATENANT_POLICY1, ctxMan, jedis);
+			tenantPolicies.putAll(loadIntratenantPolicies(INTRATENANT_POLICY2, ctxMan, jedis));
+			
+			return new ArrayList<String>(tenantPolicies.keySet());
+		}finally{
+			jedis.disconnect();
+		}
+	}
+	
+	
 	
 	
 	/*SETUP TENANTS ... */
@@ -129,9 +199,6 @@ public class AuthzServiceTester {
 				builder.append(Configuration.TENANTID_DELIMITER + tenants.get(index));
 			}
 			
-			/////////////////////
-			System.out.println("TENANT ID :" + builder);
-			/////////////////////
 			jedis.set(tenantMgr.getTenantConfigKey(), builder.toString());
 			redisInsertedKeys.add(tenantMgr.getTenantConfigKey());
 		}finally{		
@@ -140,48 +207,7 @@ public class AuthzServiceTester {
 	}
 
 	
-	
-	/*Setup policies ...*/
-	private List<String> setupPolicies() throws Exception {
-		
-		
-		ctxMan = new ContextManager(DOMAIN, REDIS_SERVER_ADDRESS);
-		
-		Jedis jedis = new Jedis(REDIS_SERVER_ADDRESS);
-		try {
-			
-			// Load provider policies to redis
-			redisInsertedKeys.add(ctxMan.getProviderPolicyKey());
-			jedis.set(ctxMan.getProviderPolicyKey(), PolicySetupUtil.loadPolicySet(PROVIDER_LAL_POLICY));
-			
-			/*WE HAVE TO SET INTRA TENANT POLICIES : Slipstream/IFBPortal policies ...*/
-			
-			// load inter-tenant policies to redis
-			Map<String, String> tenantPolicies = PolicySetupUtil.loadPolicies(BIOINFO_UC1_POLICY);
-			for(String pId : tenantPolicies.keySet()) {
-				String pKey = ctxMan.getInterTenantPolicyKey(pId);
-				redisInsertedKeys.add(pKey);
-				
-				jedis.set(pKey, tenantPolicies.get(pId));			
-			}
-			
-			
-			Map<String, String> intraTenantPolicies = PolicySetupUtil.loadPolicies(BIOINFO_UC1_POLICY);
-			String authzPolicyKeyPrefix = String.format( nl.uva.sne.daci.authzsvcimp.Configuration.REDIS_KEYPREFIX_FORMAT, DOMAIN);			
-			for(String pId : intraTenantPolicies.keySet()) {
-				String pKey = authzPolicyKeyPrefix + ":" + pId;
-				redisInsertedKeys.add(pKey);			
-				jedis.set(pKey, intraTenantPolicies.get(pId));
-				System.out.println("Put intra-tenant policy:" + pKey);
-			}
-			
-			
-			
-			return new ArrayList<String>(tenantPolicies.keySet());
-		}finally{
-			jedis.disconnect();
-		}
-	}
+
 	
 	
 	/*Create request/s*/	
@@ -196,11 +222,15 @@ public class AuthzServiceTester {
 	}
 	
 
+	
+	
+	
 	/*AUTHORIZATION SERVICE : INITIALIZE REQUESTS ...*/
 	private void initSampleRequests() {
 		authzRequests = new ArrayList<AuthzRequest>();
 		String[][] requests = 	{
 				{"alice", "HG1", "read"},
+				{"alice", "App1", "execute"},
 				{"bob", "HG1", "read"},
 				{"alice", "HG2", "write"},
 				
@@ -210,7 +240,9 @@ public class AuthzServiceTester {
 				{"john", "RD2", "read"},
 				{"john", "RD2", "write"},				
 				{"bob", "App2", "execute"},		
-				{"susan", "App2", "execute"}
+				{"susan", "App2", "execute"},
+				{"mary", "App1", "execute"},
+				{"mary", "App2", "execute"}
 		};
 		
 
@@ -231,27 +263,17 @@ public class AuthzServiceTester {
 	
 	public AuthzResponse checkAuthorization(String encodedTenantId, AuthzRequest request){
 		String tenantId;
-		
+
 		try {
 			tenantId = URLDecoder.decode(encodedTenantId, "UTF-8");			
 		} catch (UnsupportedEncodingException e1) {
 			return new AuthzResponse(DecisionType.ERROR);
 		}
 		long startTime = System.nanoTime();
-		
-		AuthzResponse res = authzsvc.authorize(encodedTenantId, request);
+		//String authzPolicyKeyPrefix = String.format( nl.uva.sne.daci.authzsvcimp.Configuration.REDIS_KEYPREFIX_FORMAT, DOMAIN);	
+		AuthzResponse res = authzsvc.authorize(/*authzPolicyKeyPrefix + ":" + */encodedTenantId, request);
 		long stopTime = System.nanoTime();
 		return res;
-		/*try {
-			long startTime = System.nanoTime();
-			AuthzResponse response =  ctxHandler.process(tenantId, request.getAttributes());
-			long stopTime = System.nanoTime();		
-			
-			return response;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new AuthzResponse(DecisionType.ERROR);
-		}*/
 		
 	}
 
