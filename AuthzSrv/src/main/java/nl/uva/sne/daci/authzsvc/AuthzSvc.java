@@ -19,9 +19,9 @@ public interface AuthzSvc {
 		ERROR
 	}
 	
-//	@POST
-//	@Path("{tenantId}/authorize")
-//    @Produces(MediaType.APPLICATION_XML)
-//	@Consumes(MediaType.APPLICATION_XML)
+	@POST
+	@Path("{tenantId}/authorize")
+    @Produces(MediaType.APPLICATION_XML)
+	@Consumes(MediaType.APPLICATION_XML)
 	public AuthzResponse authorize (/*@PathParam("tenantId")*/ String tenantId, AuthzRequest request);	
 }
