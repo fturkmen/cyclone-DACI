@@ -27,7 +27,7 @@ import nl.uva.sne.daci.contextsvcimpl.ContextSvcImpl;
 import nl.uva.sne.daci.setup.PolicySetupUtil;
 import redis.clients.jedis.Jedis;
 
-public class AuthzServiceTester {
+public class AuthzServiceRunner {
 
 	public static final String REDIS_SERVER_ADDRESS = "localhost";
 	
@@ -67,7 +67,7 @@ public class AuthzServiceTester {
 	}
 	
 	public static void main(String[] args){
-		AuthzServiceTester ast = new AuthzServiceTester();
+		AuthzServiceRunner ast = new AuthzServiceRunner();
 		
 		ast.initSampleRequests();
 		for (AuthzRequest ar : ast.getRequests()){
@@ -92,7 +92,7 @@ public class AuthzServiceTester {
 	 * 
 	 * (3) Instantiate Authorization Service, initialize it by creating a service pool
 	 * */
-	public AuthzServiceTester(){
+	public AuthzServiceRunner(){
 		redisInsertedKeys = new ArrayList<String>();
 		
 		try{
