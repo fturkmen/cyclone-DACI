@@ -12,6 +12,7 @@
     <module>ContextSrv</module>
     <module>AuthzSrv</module>
     <module>TokenSrv</module>
+    <module>TenantSrv</module>
   </modules>
 
 
