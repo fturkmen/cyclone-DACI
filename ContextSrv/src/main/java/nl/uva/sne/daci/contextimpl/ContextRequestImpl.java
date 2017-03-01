@@ -37,6 +37,14 @@ public class ContextRequestImpl implements ContextRequest {
 		return attrs;
 	}
 	
+	//FT:03.02.2017 : Added JSON  serialization/deserialization requirements ...
+	public ContextRequestImpl(){}
+	public void setSubject(Map<String, String> attrs){subject= attrs;}
+	public void setPermission(Map<String, String> perm){permission= perm;}
+	public Map<String, String> getSubject(){return subject;}
+	public Map<String, String> getPermission(){return permission;}
+	
+	
 	@Override
 	public String toString(){
 		StringBuilder builder = new StringBuilder();

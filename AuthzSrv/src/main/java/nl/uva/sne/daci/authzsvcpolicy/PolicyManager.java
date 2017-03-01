@@ -11,6 +11,7 @@ import nl.uva.sne.xacml.policy.finder.PolicyFinder;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicySetType;
 import oasis.names.tc.xacml._3_0.core.schema.wd_17.PolicyType;
 
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.xml.sax.SAXException;
 
 import redis.clients.jedis.Jedis;
@@ -30,8 +31,10 @@ public class PolicyManager {
 		this.serverAddress = redisServerAddress;
 		
 		this.domainKeyRoot = policyKeyPrefix;
-		
-		jedisPool = new JedisPool(new JedisPoolConfig(), this.serverAddress);
+		GenericObjectPoolConfig config = new JedisPoolConfig();
+		config.setMaxTotal(1000);
+		config.setMaxIdle(1000);
+		jedisPool = new JedisPool(config, this.serverAddress);
 	}
 
 	public PolicyFinder createPolicyFinder(String tenantId) {
@@ -56,8 +59,12 @@ public class PolicyManager {
 	 */
 	public Object getPolicy(String key) {
 		log.debug("Get policy: " + key);
-		Jedis jedis = jedisPool.getResource();
-		
+		Jedis jedis = null;
+		try{
+		 jedis = jedisPool.getResource();
+		}catch(Exception e){
+			System.err.println("Exception getResource " + e.getMessage());
+		}
 		try{
 			String v = jedis.get(key);
 			

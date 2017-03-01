@@ -94,6 +94,7 @@ public class TokenSvcImpl implements TokenSvc {
 		
 		Document signedDoc;
 		try {
+			
 			signedDoc = grantTokenGenerator.generateAndSign(tenantId, request, userKeyInfo);
 			
 		} catch (Exception e) {
@@ -117,6 +118,7 @@ public class TokenSvcImpl implements TokenSvc {
 
 	@Override
 	public boolean verifyGrantToken(String token) {
+		
 		if (token == null || token.isEmpty()) {
 			log.error("Null or empty input token");
 			return false;
@@ -142,5 +144,6 @@ public class TokenSvcImpl implements TokenSvc {
 		
 		return builder.toString();
 	}
+	
 	
 }

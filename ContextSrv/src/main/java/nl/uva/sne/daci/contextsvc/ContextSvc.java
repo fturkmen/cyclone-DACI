@@ -4,5 +4,5 @@ import nl.uva.sne.daci.context.ContextRequest;
 import nl.uva.sne.daci.context.ContextResponse;
 
 public interface ContextSvc {
-	ContextResponse validate(ContextRequest request) throws Exception;
+	ContextResponse validate(ContextRequest request, String tenantId) throws Exception;
 }

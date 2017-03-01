@@ -2,11 +2,9 @@ package nl.uva.sne.daci.context.tenant;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import nl.uva.sne.daci.contextsvcimpl.Configuration;
-import nl.uva.sne.daci.contextsvcimpl.ContextSvcImpl;
 import redis.clients.jedis.Jedis;
 
 public class TenantManager {

@@ -151,12 +151,11 @@ public class GrantTokenGenerator {
 		
 		//construct the grant token
 		log.debug("Creating a token for tenant: {}", tenantId);
+		
 		GrantTokenType gToken = generateGrantToken(tenantId, request, userKeyInfo);
 				
 		Document doc = marshal(gToken);
-		
 		Document signedDoc = createEnvelopedSignature(doc);
-		
 		return signedDoc;
 	}
 	

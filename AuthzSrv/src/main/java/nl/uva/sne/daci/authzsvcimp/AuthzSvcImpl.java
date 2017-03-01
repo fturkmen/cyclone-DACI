@@ -9,8 +9,8 @@ import nl.uva.sne.daci.authzsvc.AuthzSvc;
 import nl.uva.sne.daci.authzsvcpdp.PDPSvcPool;
 import nl.uva.sne.daci.authzsvcpdp.PDPSvcPoolImpl;
 import nl.uva.sne.daci.authzsvcpolicy.PolicyManager;
-import nl.uva.sne.daci.contextsvc.ContextSvc;
-import nl.uva.sne.daci.context.tenant.TenantManager;
+import nl.uva.sne.daci.context.ContextHandler;
+import nl.uva.sne.daci.tenant.TenantManager;
 
 public class AuthzSvcImpl implements AuthzSvc {
 	private static final transient org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthzSvcImpl.class);
@@ -23,6 +23,13 @@ public class AuthzSvcImpl implements AuthzSvc {
 	
 	TenantManager tenantMgr;
 
+
+	public AuthzSvcImpl() {
+				
+	}
+	
+	/*FT:03.02.2017 commented out for moving the context service instantiation to ContextHandler.
+	
 	private ContextSvc contextsvc;
 	
 	public AuthzSvcImpl(ContextSvc ctxsvc) {
@@ -33,7 +40,7 @@ public class AuthzSvcImpl implements AuthzSvc {
 		}
 		log.info("Connected to daci contextservice");
 		this.contextsvc = ctxsvc;		
-	}
+	}*/
 	
 	public void init(){
 		log.info("Initializing DACI AuthzService");
@@ -65,7 +72,8 @@ public class AuthzSvcImpl implements AuthzSvc {
 		}
 		log.info("Loaded policies for {} tenants", tenantMgr.getTenantIdentifiers().size());
 		
-		ctxHandler = new ContextHandler(this.contextsvc, servicePool, tenantMgr);
+		//ctxHandler = new ContextHandler(this.contextsvc, servicePool, tenantMgr);
+		ctxHandler = new ContextHandler(servicePool, tenantMgr);
 		
 		long currentTime = System.currentTimeMillis();
 		log.info("DACI AuthzService initialization done: {} ms", (currentTime-startTime));

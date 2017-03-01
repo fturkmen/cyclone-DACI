@@ -7,6 +7,22 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
+    <parent>
+        <groupId>nl.uva.sne</groupId>
+        <artifactId>SecSrvs</artifactId>
+        <version>1.0</version>
+    </parent>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <start-class>nl.uva.sne.daci.rest.Application</start-class>
+        <java.version>1.8</java.version>
+        <!--<tomcat.version>8.0.24</tomcat.version>-->
+       <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
 
  <build>
     <directory>target</directory>
@@ -23,10 +39,18 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+      <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
     </plugins>
   </build>
 
 <dependencies>
+<!--<dependency>
+   <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-web</artifactId>
+</dependency>-->
 <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
@@ -38,12 +62,12 @@
        <version>2.9.0</version>
        <type>jar</type>
   </dependency>
-<dependency>
+<!--<dependency>
       <groupId>nl.uva.sne</groupId>
       <artifactId>TokenSrv</artifactId>
       <version>0.1-SNAPSHOT</version>
       <type>jar</type>
-  </dependency>
+  </dependency>-->
   <dependency>
       <groupId>nl.uva.sne</groupId>
       <artifactId>sne-xacml</artifactId>
@@ -59,6 +83,21 @@
     <groupId>org.slf4j</groupId>
     <artifactId>slf4j-api</artifactId>
     <version>1.7.21</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.8.6</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-core</artifactId>
+    <version>2.8.6</version>
+</dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+    <version>2.8.6</version>
 </dependency>
 </dependencies>
 

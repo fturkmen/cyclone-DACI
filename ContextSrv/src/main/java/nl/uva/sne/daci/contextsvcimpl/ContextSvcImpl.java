@@ -21,7 +21,8 @@ import nl.uva.sne.daci.contextimpl.ContextBaseResponse;
 import nl.uva.sne.daci.contextimpl.ContextManager;
 import nl.uva.sne.daci.contextimpl.ContextStoreImpl;
 import nl.uva.sne.daci.context.tenant.TenantManager;
-import nl.uva.sne.daci.tokensvc.TokenSvc;
+//FT:03.02.2017
+//import nl.uva.sne.daci.tokensvc.TokenSvc;
 import nl.uva.sne.daci.utils.XMLUtil;
 
 public class ContextSvcImpl implements ContextSvc {
@@ -34,19 +35,25 @@ public class ContextSvcImpl implements ContextSvc {
 	
 	private ContextStore ctxStore;
 
-	private TokenSvc tokensvc;
+	//FT:03.02.2017
+	//private TokenSvc tokensvc;
+	private TokenSvcClient tsc;
 	
-	public ContextSvcImpl(TokenSvc tokensvc) throws Exception {
+	public ContextSvcImpl(/*FT:03.02.2017 TokenSvc tokensvc*/) throws Exception {
 		this(Configuration.DOMAIN, Configuration.REDIS_SERVER_ADDRESS);
 		
-		if (tokensvc == null)
+		//FT:03.02.2017
+		tsc = new TokenSvcClient(Configuration.REDIS_SERVER_ADDRESS); 
+		/*if (tokensvc == null)
 			throw new RuntimeException("Cannot connect to the DACI tokenservice");		
-		this.tokensvc = tokensvc;		
+		this.tokensvc = tokensvc;*/		
 	}
 
-	public ContextSvcImpl(String domain, String redisServerAddress){
+	public ContextSvcImpl(String domain, String redisServerAddr){
 		this.domain = domain;
-		this.redisServerAddress = redisServerAddress;				
+		this.redisServerAddress = redisServerAddr;	
+		//FT:03.02.2017
+		this.tsc = new TokenSvcClient(/*Configuration.REDIS_SERVER_ADDRESS*/this.redisServerAddress); 
 	}
 		
 	
@@ -97,10 +104,10 @@ public class ContextSvcImpl implements ContextSvc {
 //	}
 
 	@Override
-	public ContextResponse validate(ContextRequest request){
+	public ContextResponse validate(ContextRequest request,/*FT:03.02.2017 : Added TenantID*/ String tenantId){
 		log.debug("Receive request:{}", request.toString());
 		try {
-			return validate(request.getSubjectAttributes(), request.getPermissionAttributes());
+			return validate(request.getSubjectAttributes(), request.getPermissionAttributes(), tenantId);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -109,13 +116,15 @@ public class ContextSvcImpl implements ContextSvc {
 
 	}
 
-	private ContextResponse validate(Map<String, String> subject, Map<String, String> permission) throws Exception {
+	private ContextResponse validate(Map<String, String> subject, Map<String, String> permission,
+																/*FT:03.02.2017 : Added TenantID*/ String tenantId) throws Exception {
 		
 		Map<String, String> attrs = new HashMap<String, String>(subject.size() + permission.size());
 		attrs.putAll(subject);
 		attrs.putAll(permission);
 		
 		for(Context ctx: ctxStore.getContexts()) {
+
 			if (ctx.validate(attrs)) {
 				if (this.ctxStore.isRootContext(ctx)) {
 					// if this is the ctx for local resource
@@ -124,11 +133,11 @@ public class ContextSvcImpl implements ContextSvc {
 					else 
 					// otherwise, create a grant-token and relay to user for the purpose to get access token
 					// at the remote domain.
-						return createGrantTokenResponse(ctx);
+						return createGrantTokenResponse(ctx,tenantId);
 				}					
 				else {
 					// if it's not the root contexts, find the ctx that can validate <ctx_issuer, permission> request
-					return validate(ctx.getIssuerAttributes(), permission);
+					return validate(ctx.getIssuerAttributes(), permission, tenantId);
 				}
 			}
 		}
@@ -137,9 +146,10 @@ public class ContextSvcImpl implements ContextSvc {
 		return new ContextBaseResponse();
 	}
 
-	private ContextResponse createGrantTokenResponse(Context ctx) throws Exception {
-		if (this.tokensvc == null)
-			throw new Exception("Cannot connect to tokensvc");
+	private ContextResponse createGrantTokenResponse(/*FT:03.02.2017 : Added TenantID*/Context ctx, String tenantId) throws Exception {
+		//FT:03.02.2017
+		/*if (this.tokensvc == null)
+			throw new Exception("Cannot connect to tokensvc");*/
 		
 //		String grantToken = "temp-grant-token";
 //		ContextResponse resp = new ContextBaseResponse(grantToken);
@@ -149,8 +159,9 @@ public class ContextSvcImpl implements ContextSvc {
 		RequestType request = createDummyRequest();
 		KeyInfoType userKeyInfo = getDummyKeyInfo();
 				
-		
-		String token = this.tokensvc.issueGrantToken("http://demo3.sne.uva.nl/VI/750", request, userKeyInfo);
+		//FT:03.02.2017
+		//String token = this.tokensvc.issueGrantToken("http://demo3.sne.uva.nl/VI/750", request, userKeyInfo);
+		String token = tsc.issueGrantToken(/*"http://demo3.sne.uva.nl/VI/750"*/ tenantId, request, userKeyInfo);
 		
 		ContextResponse resp = new ContextBaseResponse(token);
 		

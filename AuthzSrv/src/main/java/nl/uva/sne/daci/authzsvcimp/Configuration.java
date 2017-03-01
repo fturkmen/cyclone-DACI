@@ -16,6 +16,12 @@ public class Configuration {
 	public static final String REDIS_SERVER_ADDRESS = "localhost";
 
 	public static final String DOMAIN = "demo-uva"; //"daci-sne-demo";
+	
+	public static final String DACI_TENANT_CONFIG_KEY = "urn:eu:geysers:daci:%s:config:tenants";
+	
+	public static final String TENANTID_DELIMITER = ";";
+	
+	public static final String CONTEXT_SVC_URL = "http://localhost:8080/contexts";
 
 	
 }

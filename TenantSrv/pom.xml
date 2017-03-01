@@ -7,6 +7,22 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
+    <parent>
+        <groupId>nl.uva.sne</groupId>
+        <artifactId>SecSrvs</artifactId>
+        <version>1.0</version>
+    </parent>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <start-class>nl.uva.sne.daci.rest.Application</start-class>
+        <java.version>1.8</java.version>
+        <!--<tomcat.version>8.0.24</tomcat.version>-->
+       <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
 
  <build>
     <directory>target</directory>
@@ -23,15 +39,57 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+      <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
     </plugins>
   </build>
 
 <dependencies>
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-api</artifactId>
-    <version>1.7.21</version>
-</dependency>
+<!--        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <scope>test</scope>
+        </dependency>-->
+        <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>2.9.0</version>
+        </dependency>
+	<dependency>
+    		<groupId>org.slf4j</groupId>
+    		<artifactId>slf4j-api</artifactId>
+    		<version>1.7.21</version>
+	</dependency>
+        <dependency>
+                <groupId>nl.uva.sne</groupId>
+                <artifactId>sne-xacml</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <type>jar</type>
+        </dependency>
 </dependencies>
+
+    <!--<repositories>
+        <repository>
+            <id>spring-releases</id>
+            <url>https://repo.spring.io/libs-release</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-releases</id>
+            <url>https://repo.spring.io/libs-release</url>
+        </pluginRepository>
+    </pluginRepositories>-->
 
 </project>
