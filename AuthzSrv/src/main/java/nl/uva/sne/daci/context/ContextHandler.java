@@ -6,7 +6,6 @@ import java.util.Map;
 import nl.uva.sne.daci.authzsvc.AuthzResponse;
 import nl.uva.sne.daci.authzsvc.AuthzSvc;
 import nl.uva.sne.daci.authzsvc.AuthzSvc.DecisionType;
-import nl.uva.sne.daci.authzsvcimp.Configuration;
 import nl.uva.sne.daci.authzsvcpdp.PDPSvc;
 import nl.uva.sne.daci.authzsvcpdp.PDPSvcPool;
 //FT:03.02.2017  import nl.uva.sne.daci.context.ContextRequest;
@@ -53,13 +52,13 @@ public class ContextHandler {
 	
 	
 	
-	public ContextHandler(/*ContextSvc ctxsvc,*/ PDPSvcPool servicePool, TenantManager tenantMgr) {
+	public ContextHandler(/*ContextSvc ctxsvc,*/ PDPSvcPool servicePool, TenantManager tenantMgr, String contextSrvURL) {
 		/*FT:03.02.2017
 		 * if (ctxsvc == null || servicePool == null || tenantMgr == null)
 			throw new RuntimeException("Null arguments to construct ContextHandler object");*/
 		
 		//this.contextSvc = ctxsvc; //FT:03.02.2017 ctxsvc;
-		this.csc = new ContextSvcClient(Configuration.CONTEXT_SVC_URL);
+		this.csc = new ContextSvcClient(contextSrvURL);
 		
 		this.servicePool = servicePool;
 		this.tenantMgr = tenantMgr;

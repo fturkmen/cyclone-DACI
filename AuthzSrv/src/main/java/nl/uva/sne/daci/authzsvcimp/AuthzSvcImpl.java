@@ -73,7 +73,7 @@ public class AuthzSvcImpl implements AuthzSvc {
 		log.info("Loaded policies for {} tenants", tenantMgr.getTenantIdentifiers().size());
 		
 		//ctxHandler = new ContextHandler(this.contextsvc, servicePool, tenantMgr);
-		ctxHandler = new ContextHandler(servicePool, tenantMgr);
+		ctxHandler = new ContextHandler(servicePool, tenantMgr, Configuration.CONTEXT_SVC_URL);
 		
 		long currentTime = System.currentTimeMillis();
 		log.info("DACI AuthzService initialization done: {} ms", (currentTime-startTime));

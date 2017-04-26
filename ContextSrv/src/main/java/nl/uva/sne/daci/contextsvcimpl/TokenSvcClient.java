@@ -41,11 +41,8 @@ import org.xml.sax.SAXException;
 public class TokenSvcClient {
 	private static final transient org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TokenSvcClient.class);
 
-	private static final String LOCAL_TOKEN_SERVICE_URL = "http://localhost:8080/tokenservice";
 	
-	public static final String METHOD_ISSUE_GRANT_TOKEN = "/grant_token";
-	
-	public static final String METHOD_VERIFY_GRANT_TOKEN = "/verify_grant_token";
+	public static final String METHOD_TOKEN = "/tokens";
 	
 	public static final String TENANT_ID = "daci_tenant_id";
 	
@@ -62,7 +59,7 @@ public class TokenSvcClient {
 	
 	public static void main(String[] args) throws Exception {
 		
-        TokenSvcClient client = new TokenSvcClient(LOCAL_TOKEN_SERVICE_URL);
+        TokenSvcClient client = new TokenSvcClient(Configuration.TOKEN_SVC_URL);
         
         Document docRequest = XMLUtil.readXML(SAMPLE_REQUEST_FILE);
         RequestType request = XMLUtil.unmarshal(RequestType.class, docRequest.getDocumentElement());
@@ -109,24 +106,15 @@ public class TokenSvcClient {
 	private String serviceURL;
 	private HttpClient httpClient;
 
-	private String methodIssueGrantTokenURL;
-
-	private String methodVerifyGrantTokenURL; 
-
 	public TokenSvcClient(String address){
 		this.serviceURL = address;
-		
-		this.methodIssueGrantTokenURL = this.serviceURL + METHOD_ISSUE_GRANT_TOKEN;
-		
-		this.methodVerifyGrantTokenURL = this.serviceURL + METHOD_VERIFY_GRANT_TOKEN;
-		
 		
 		httpClient = HttpClients.createDefault();
 	}
 	
 	public boolean verifyGrantToken(String token) throws Exception {
 
-		HttpPost mPost = new HttpPost(this.methodVerifyGrantTokenURL);
+		HttpPost mPost = new HttpPost(this.serviceURL);
 		
 		List <NameValuePair> nvps = new ArrayList <NameValuePair>();
 		nvps.add(new BasicNameValuePair(token, "UTF-8"));
@@ -174,7 +162,7 @@ public class TokenSvcClient {
 		String requestParam = print(request);
 		String keyInfoParam = print(userKeyInfo);
 		
-		HttpPost mPost = new HttpPost(this.methodIssueGrantTokenURL);
+		HttpPost mPost = new HttpPost(this.serviceURL + "/" + tenantId);
         //PostMethod mPost = new PostMethod(this.methodIssueGrantTokenURL);
 		List <NameValuePair> nvps = new ArrayList <NameValuePair>();
 		nvps.add(new BasicNameValuePair(TENANT_ID, tenantId));

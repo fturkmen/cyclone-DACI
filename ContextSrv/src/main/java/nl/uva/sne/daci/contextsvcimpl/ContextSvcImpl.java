@@ -116,6 +116,8 @@ public class ContextSvcImpl implements ContextSvc {
 
 	}
 
+	
+	
 	private ContextResponse validate(Map<String, String> subject, Map<String, String> permission,
 																/*FT:03.02.2017 : Added TenantID*/ String tenantId) throws Exception {
 		

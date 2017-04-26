@@ -21,7 +21,9 @@ public class Configuration {
 	
 	public static final String TENANTID_DELIMITER = ";";
 	
-	public static final String CONTEXT_SVC_URL = "http://localhost:8080/contexts";
+	public static final String CONTEXT_SVC_PORT = "8090";
+	
+	public static final String CONTEXT_SVC_URL = "http://localhost:"+ CONTEXT_SVC_PORT + "/contexts";
 
 	
 }

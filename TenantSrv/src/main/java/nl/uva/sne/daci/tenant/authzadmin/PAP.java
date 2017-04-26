@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import nl.uva.sne.daci.utils.PolicySetupUtil;
 import redis.clients.jedis.Jedis;
-
+import java.io.*;
 
 
 public class PAP {
@@ -31,12 +32,29 @@ public class PAP {
 		domain = dom;
 	}
 	
-	private Map<String, String> loadIntertenantPolicies(String policyName, Jedis jedis){
+	private String getInterTenantPolicyKey(String trustor) {
+		if (trustor == null || trustor.isEmpty())
+			throw new RuntimeException("Empty trustor tenant identifier");
+		return String.format(Configuration.INTERTENANT_KEY_STYLE, domain) + trustor;
+	}
+	
+	private String getProviderPolicyKey() {
+		return String.format(Configuration.PROVIDER_KEY_STYLE, domain);
+	}
+	
+	
+	private <T> Map<String, String> loadIntertenantPolicies(T policyName, Jedis jedis){
 		try {
 			
 			// load inter-tenant policies to redis
-			Map<String, String> tenantPolicies = PolicySetupUtil.loadPolicies(policyName);
-			for(String pId : tenantPolicies.keySet()) {				
+			Map<String, String> tenantPolicies = null;
+			if (policyName instanceof InputStream)
+				tenantPolicies = PolicySetupUtil.loadPolicies((InputStream)policyName);
+			else 
+				tenantPolicies = PolicySetupUtil.loadPolicies((String) policyName);
+			
+			for(String pId : tenantPolicies.keySet()) {	
+				
 				String pKey = getInterTenantPolicyKey(pId);
 				//redisInsertedKeys.add(pKey);
 				jedis.set(pKey, tenantPolicies.get(pId));			
@@ -50,20 +68,19 @@ public class PAP {
 		}
 	}
 	
+
 	
-	public String getInterTenantPolicyKey(String trustor) {
-		if (trustor == null || trustor.isEmpty())
-			throw new RuntimeException("Empty trustor tenant identifier");
-		return String.format(Configuration.INTERTENANT_KEY_STYLE, domain) + trustor;
-	}
-	
-	public String getProviderPolicyKey() {
-		return String.format(Configuration.PROVIDER_KEY_STYLE, domain);
-	}
-	
-	private Map<String, String> loadIntratenantPolicies(String policyName, Jedis jedis, String domain){
+	private <T> Map<String, String> loadIntratenantPolicies(T policyName, Jedis jedis, String domain){
 		try{
-			Map<String, String> intraTenantPolicies = PolicySetupUtil.loadPolicyorPolicySets(policyName);//loadPolicies(BIOINFO_UC1_POLICY);
+			
+			Map<String, String> intraTenantPolicies = null;
+			if (policyName instanceof InputStream)	
+				intraTenantPolicies = PolicySetupUtil.loadPolicies((InputStream)policyName);
+				//intraTenantPolicies = PolicySetupUtil.loadPolicyorPolicySets((InputStream)policyName);
+			else 
+				intraTenantPolicies = PolicySetupUtil.loadPolicies((String)policyName);
+				//intraTenantPolicies = PolicySetupUtil.loadPolicyorPolicySets((String)policyName);
+			
 			String authzPolicyKeyPrefix = String.format( Configuration.REDIS_KEYPREFIX_FORMAT, domain);			
 			for(String pId : intraTenantPolicies.keySet()) {
 				String pKey = authzPolicyKeyPrefix + ":" + pId;
@@ -80,6 +97,36 @@ public class PAP {
 		}
 	}
 	
+
+	
+	
+	public void setProviderPolicy(String redisAddress, InputStream policy) throws Exception{
+		Jedis jedis = new Jedis(redisAddress);
+		try {
+			jedis.set(getProviderPolicyKey(), PolicySetupUtil.loadPolicySet(policy));
+		}finally{
+			jedis.disconnect();
+		}
+	}
+	
+	public void setIntertenantPolicy(String redisAddress, InputStream policy) throws Exception{
+		Jedis jedis = new Jedis(redisAddress);
+		try {
+			loadIntertenantPolicies(policy, jedis);
+		}finally{
+			jedis.disconnect();
+		}
+	}
+	
+	public void setIntratenantPolicy(String redisAddress, InputStream policy) throws Exception{
+		Jedis jedis = new Jedis(redisAddress);
+		try {
+			loadIntratenantPolicies(policy, jedis, domain);
+		}finally{
+			jedis.disconnect();
+		}
+	}
+	
 	
 	/*Setup policies ...*/
 	public List<String> setupPolicies(String redisAddress, String domain) throws Exception {
@@ -89,8 +136,6 @@ public class PAP {
 			// Load provider policies to redis
 			//redisInsertedKeys.add(ctxMan.getProviderPolicyKey());
 			jedis.set(getProviderPolicyKey(), PolicySetupUtil.loadPolicySet(PROVIDER_POLICY1));
-			
-			
 			
 			loadIntertenantPolicies(INTERTENANT_POLICY1, jedis);
 			loadIntertenantPolicies(INTERTENANT_POLICY2, jedis);
