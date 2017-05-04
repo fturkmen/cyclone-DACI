@@ -33,30 +33,7 @@ public class TenantSrvController{
 	
 	
     /***********    POLICY MANAGEMENT *********/
-	
-
-    /*Upload provider policies ...*/
-    /*@RequestMapping(
-    		value = "pdps/{providerId}/policies/{policyId}",
-	    	method = {RequestMethod.PUT},
-	    	consumes = { "application/json","application/xml"},
-	    	produces = { "application/json","application/xml"}
-    			 )
-    public List<String> providerPolicy(@RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
-    								@RequestParam(value="domain", defaultValue="localhost") String domain,
-    								@RequestParam(value="policy") String policyFile) {
-    	try {
-    		pap =  new PAP(domain);
-    		
-    		
-    		return pap.setProviderPolicy(redisAddress, policy);
-    	}catch(Exception e) {
-			throw new RuntimeException("Couldn't get the policies", e);
-		}
-    }*/
-
-	
-    
+	    
     /*Upload Provider policies ...*/
 	@PostMapping("providerPolicy")
     public /*List<String>*/void providerPolicy(@RequestParam(value="providerId", defaultValue="provider") String providerId,
