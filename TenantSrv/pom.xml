@@ -19,7 +19,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <start-class>nl.uva.sne.daci.rest.Application</start-class>
         <java.version>1.8</java.version>
-        <!--<tomcat.version>8.0.24</tomcat.version>-->
        <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>

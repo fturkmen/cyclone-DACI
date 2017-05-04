@@ -22,7 +22,6 @@ public class AuthorizationSvcDemo {
 
 
 	
-	
 	/*  This application will try to access private data or execute an application
 	 *  on behalf of a user, and authorization service will check whether the user
 	 *  is authorized to do so... 
@@ -34,7 +33,7 @@ public class AuthorizationSvcDemo {
 		
 		/*Add policies: provider, intertenant and intratenant*/
 		
-		
+		 
 		
 		
 		/*Check the authorizations ...*/
