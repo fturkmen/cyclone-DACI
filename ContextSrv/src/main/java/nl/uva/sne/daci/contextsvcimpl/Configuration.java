@@ -17,11 +17,11 @@ public class Configuration {
 	
 	public static final String TENANTID_DELIMITER = ";";
 	
-	public static final String REDIS_SERVER_ADDRESS = "localhost";
+	public static  String REDIS_SERVER_ADDRESS = "localhost";
 
-	public static final String DOMAIN = "demo-uva";//"daci-sne-demo";	
+	public static  String DOMAIN = "demo-uva";//"daci-sne-demo";	
 	
-	public static final String TOKEN_SVC_PORT = "8091";
+	public static  String TOKEN_SVC_PORT = "8091";
 	
-	public static final String TOKEN_SVC_URL = "http://localhost:"+TOKEN_SVC_PORT + "/tokens";
+	public static  String TOKEN_SVC_URL = "http://localhost:"+TOKEN_SVC_PORT + "/tokens";
 }

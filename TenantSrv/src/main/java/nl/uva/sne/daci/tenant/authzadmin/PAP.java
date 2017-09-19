@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import nl.uva.sne.daci.tenant.tenantadmin.Configuration;
 import nl.uva.sne.daci.utils.PolicySetupUtil;
 import redis.clients.jedis.Jedis;
 import java.io.*;

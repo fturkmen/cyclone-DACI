@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import nl.uva.sne.daci.tenant.tenantadmin.Configuration;
 import nl.uva.sne.daci.utils.PolicySetupUtil;
 import redis.clients.jedis.Jedis;
 

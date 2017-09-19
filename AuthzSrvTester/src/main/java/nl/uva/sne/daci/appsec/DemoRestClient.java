@@ -187,7 +187,7 @@ public class DemoRestClient {
 	public static AuthzResponse authorize(AuthzRequest req, String tenantId) throws Exception {
 		
 		String output = null;
-        String url = "http://localhost:8080/pdps/" + tenantId+"/decision";
+        String url = "http://localhost:8089/pdps/" + tenantId+"/decision";
         HttpClient client = HttpClientBuilder.create().build();
         ObjectMapper mapper = new ObjectMapper();
         try{
