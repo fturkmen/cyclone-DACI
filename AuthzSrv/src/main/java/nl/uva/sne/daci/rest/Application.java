@@ -33,10 +33,10 @@ public class Application implements ApplicationRunner{
         if (args.containsOption("domain")) 
         	Configuration.DOMAIN = args.getOptionValues("domain").get(0);
         
-        System.out.println("redis_address="+Configuration.REDIS_SERVER_ADDRESS +
+        /*System.out.println("redis_address="+Configuration.REDIS_SERVER_ADDRESS +
         				   " context_srv_port=" + Configuration.CONTEXT_SVC_PORT +
         				   " context_srv_address=" + args.getOptionValues("context_srv_address").get(0)+
-        				   " domain="+Configuration.DOMAIN);
+        				   " domain="+Configuration.DOMAIN);*/
     }
     
     
