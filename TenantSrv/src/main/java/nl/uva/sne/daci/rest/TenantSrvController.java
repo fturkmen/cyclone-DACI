@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
@@ -35,7 +37,7 @@ public class TenantSrvController{
     /***********    POLICY MANAGEMENT *********/
 	    
     /*Upload Provider policies ...*/
-	@PostMapping("providerPolicy")
+	@PostMapping("/providerPolicy")
     public /*List<String>*/void providerPolicy(@RequestParam(value="providerId", defaultValue="provider") String providerId,
     										   @RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
     									  	   @RequestParam(value="domain", defaultValue="demo-uva") String domain,
@@ -52,7 +54,7 @@ public class TenantSrvController{
     
  
     /*Upload intertenant policies ...*/
-	@PostMapping("intertenantPolicy")
+	@PostMapping("/intertenantPolicy")
     public /*List<String>*/void intertenantPolicy(@RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
 	  		  									  @RequestParam(value="domain", defaultValue="demo-uva") String domain,
 	  		  									  @RequestParam(value="policy") MultipartFile policyFile) {
@@ -66,7 +68,7 @@ public class TenantSrvController{
     
     
     /*Upload intratenant policies ...*/
-	@PostMapping("tenantUserPolicy")
+	@PostMapping("/tenantUserPolicy")
     public /*List<String>*/void tenantUserPolicy(@RequestParam(value="tenantId", defaultValue="tenant") String tenantId,
     											 @RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
 	  		  									 @RequestParam(value="domain", defaultValue="demo-uva") String domain,
@@ -75,8 +77,8 @@ public class TenantSrvController{
     		/*Here there should be a way of checking if the tenant is stored registered already (i.e. stored in redis)*/
     		TenantSvcImpl tsc = new TenantSvcImpl(redisAddress, domain);
     		if (!tsc.checkTenant(tenantId)){
-    			System.out.println("Couldn't find the tenant");
-    			System.err.println("Couldn't find the tenant");
+    			//System.out.println("Couldn't find the tenant");
+    			//System.err.println("Couldn't find the tenant");
     			return;
     		};
     		pap =  new PAP(domain);    		
@@ -90,25 +92,25 @@ public class TenantSrvController{
     
    
     
-    
     /***********    TENANT MANAGEMENT *********/
-    
 	  /*Tenant Creation*/
 	  @RequestMapping(
-				value = "tenants",
-		    	method = RequestMethod.PUT,
-		    	consumes = { "application/json",  "application/xml"},
-		    	produces = { "application/json",  "application/xml"}
+				value = "/tenants",
+		    	method = RequestMethod.POST,
+		    	consumes = { "application/*", "text/*"},
+		    	produces = { "application/*", "text/*"}
 				 )
 	  //@ExceptionHandler(IOException.class)
 	  //@ExceptionHandler(Exception.class)
-	  public boolean tenantCreation(@RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
-									 @RequestParam(value="domain", defaultValue="demo-uva") String domain,
-									 @RequestParam(value="tenantId", defaultValue="tenant") String tenantId/*,
+	  //@PostMapping("/tenants")
+	  public boolean tenantCreation(@RequestParam(value="redisAddress"/*, defaultValue="localhost"*/) String redisAddress,
+									 @RequestParam(value="domain"/*, defaultValue="demo-uva"*/) String domain,
+									 @RequestParam(value="tenantId"/*, defaultValue="tenant"*/) String tenantId/*,
 									 @RequestParam(value="request") AuthzRequest request*/) {
 		  	
 		  try {
 			  TenantSvc tsc = new TenantSvcImpl(redisAddress, domain);
+			  System.out.println("redis :"+redisAddress + "  domain:"+domain + " tenantId:"+tenantId);
 			  return tsc.createTenant(tenantId);
 			}catch(Exception e) {
 				throw new RuntimeException("Couldn't add the tenant", e);
@@ -122,14 +124,15 @@ public class TenantSrvController{
 	  
 	  
 	  /*Tenant Removal*/
-	  @RequestMapping(
-				value = "tenants",
+	  /*@RequestMapping(
+				value = "/tenants",
 		    	method = RequestMethod.DELETE,
 				consumes = { "application/json",  "application/xml"},
 				produces = { "application/json",  "application/xml"}
-				 )
+				 )*/
 	  //@ExceptionHandler(IOException.class)
 	  //@ExceptionHandler(Exception.class)
+	  @DeleteMapping("/tenants")
 	  public boolean tenantDeletion(@RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
 									 @RequestParam(value="domain", defaultValue="demo-uva") String domain,
 									 @RequestParam(value="tenantId", defaultValue="tenant") String tenantId/*,
@@ -146,5 +149,27 @@ public class TenantSrvController{
 		  //return ev.checkAuthorization(tenantId, request);
 	}  
 
+	  
+	  @RequestMapping(
+	  			value = "/tenants/hello",
+		    	method = RequestMethod.POST,
+				consumes = {"application/*"},
+				produces = {"application/*"}
+	  			 )
+	  //@ExceptionHandler(IOException.class)
+	  //@ExceptionHandler(Exception.class)
+	  //@PostMapping("/tenants/hello")
+	  public String hello(/*@RequestBody*/@RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
+						  @RequestParam(value="domain", defaultValue="demo-uva") String domain,
+					 	  @RequestParam(value="tenantId"/*, defaultValue="tenant"*/) String tenantId
+									 ) {
+		  try {
+			  System.out.println("Hello: Tenant Service --> Address:" + redisAddress);
+			  return "Hello: Tenant Service --> Address:" + redisAddress;// + " Domain:" + domain + " tenantId:"+ tenantId;
+		  }catch(Exception e) {
+				throw new RuntimeException("Couldn't get the message", e);
+		  }
+
+	  }
      
 }

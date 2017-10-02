@@ -31,7 +31,7 @@ public class ContextSrvController{
 	
   /*Context checking*/
   @RequestMapping(
-			value = "contexts",
+			value = "/contexts",
 	    	method = RequestMethod.POST,
 	    	consumes = { "application/json",  "application/xml"},
 	    	produces = { "application/json",  "application/xml"}
@@ -64,7 +64,7 @@ public class ContextSrvController{
 
   
   @RequestMapping(
-  			value = "contexts/{clientId}/hello",
+  			value = "/contexts/{clientId}/hello",
 	    	method = RequestMethod.GET
   			 )
   //@ExceptionHandler(IOException.class)

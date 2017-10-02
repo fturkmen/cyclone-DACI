@@ -32,21 +32,21 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 public class DemoRestClient {
 	
 
-	static String lalProviderPolicy = "policies/BioinformaticsCyclone.LAL_ProviderPolicySet.xml";
-	static String intertenantPolicy = "policies/BioinformaticsCyclone.IntertenantPolicies.xml";
-	static String intratenantPolicy = "policies/BioinformaticsCyclone.IFB1_Tenant.xml";
+	static String providerPolicy = "policies/EnergyCyclone.EUC_ProviderPolicySet.xml";
+	static String intertenantPolicy = "policies/EnergyCyclone.EUC_inter-tenant-policies.xml";
+	static String intratenantPolicy = "policies/EnergyCyclone.API_Resources_Tenant.xml";
 	
 	
 	public static void main(String[] args) {
         DemoRestClient restClient = new DemoRestClient();
         try {
-        	restClient.createTenant("Bioinformatics_IFB_Tenant1");
-        	restClient.setPolicy(lalProviderPolicy, "providerPolicy");
+        	restClient.createTenant("Energy_Tenant1");
+        	restClient.setPolicy(providerPolicy, "providerPolicy");
         	restClient.setPolicy(intertenantPolicy, "intertenantPolicy");
         	restClient.setPolicy(intratenantPolicy, "tenantUserPolicy");
         	
-        	AuthzRequest ar = createRequest("Bioinformatician", "HG1", "read");	
-        	if (restClient.readPrivateData_Integrated(ar, "Bioinformatics_IFB_Tenant1")) 
+        	AuthzRequest ar = createRequest("a", "listPowerPlants", "execute");	
+        	if (restClient.readPrivateData_Integrated(ar, "Energy_Tenant1")) 
         		System.out.println("SUCCESS!");
     		else System.out.println("NOT AUTHORIZED!!!");
         } catch (Exception e) {
@@ -154,29 +154,38 @@ public class DemoRestClient {
         String url = "http://localhost:8092/tenants";
         HttpClient client = HttpClientBuilder.create().build();
         //ObjectMapper mapper = new ObjectMapper();
+       
         try{
-            HttpPut mPut = new HttpPut(url);
-              
-            mPut.setHeader("Content-Type", "application/json");
+        	HttpPost mPost = new HttpPost(url);
+        	//mPost.setHeader("Content-Type", "application/json");
             //mPut.setHeader("accept", "application/json");
             
-            mPut.setEntity(new StringEntity("localhost"));
-            mPut.setEntity(new StringEntity("demo-uva"));
-            mPut.setEntity(new StringEntity(tenantId));
+        	mPost.setEntity(new StringEntity("localhost"));
+        	mPost.setEntity(new StringEntity("demo-uva"));
+        	mPost.setEntity(new StringEntity(tenantId));
             //FileEntity entity = new FileEntity(new File(policyFile));
             //entity.setContentType(ContentType.APPLICATION_XML.getMimeType());
             //mPost.setEntity(entity);      
 
-            HttpResponse response = client.execute(mPut); 
+            HttpResponse response = client.execute(mPost); 
+            output = response.toString();
+            mPost.releaseConnection( );
+            System.out.println("Response... : " + output);
             
+        	/*HttpPut mPut = new HttpPut(url);
+            mPut.setHeader("Content-Type", "application/json");
+            mPut.setEntity(new StringEntity("localhost"));
+            mPut.setEntity(new StringEntity("demo-uva"));
+            mPut.setEntity(new StringEntity(tenantId));
+            HttpResponse response = client.execute(mPut); 
             output = response.toString();
             mPut.releaseConnection( );
-            System.out.println("Response... : " + output);
+            System.out.println("Response... : " + output);*/
             
         }catch(Exception e){
         	throw new Exception("Exception in adding bucket : " + e.getMessage());
         	
-        }	
+        }	     	
 	}
 	
 	/*TODO : Add removeTenant call as well*/

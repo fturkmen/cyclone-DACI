@@ -36,7 +36,7 @@ public class AuthzSrvController{
 	
   /*Creation of a PDP Instance --> This may be useful later!!!*/
   @RequestMapping(
-  			value = "pdps/{tenantId}/pdp",
+  			value = "/pdps/{tenantId}/pdp",
 	    	method = RequestMethod.GET,
 	    	consumes = { "application/json",  "application/xml"},
 	    	produces = { "application/json",  "application/xml"}
@@ -67,7 +67,7 @@ public class AuthzSrvController{
 
   /*Policy Evaluation */
   @RequestMapping(
-  			value = "pdps/{tenantId}/decision",
+  			value = "/pdps/{tenantId}/decision",
 	    	method = RequestMethod.POST,
 	    	consumes = { "application/json",  "application/xml"},
 	    	produces = { "application/json",  "application/xml"}
@@ -100,7 +100,7 @@ public class AuthzSrvController{
   
  
   @RequestMapping(
-  			value = "pdps/{tenantId}/hello",
+  			value = "/pdps/{tenantId}/hello",
 	    	method = RequestMethod.GET
   			 )
   //@ExceptionHandler(IOException.class)
