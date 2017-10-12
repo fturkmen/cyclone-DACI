@@ -5,6 +5,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,37 +17,37 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-
+import org.springframework.validation.BindingResult;
+import com.fasterxml.jackson.core.JsonParser;
 import nl.uva.sne.daci.tenant.authzadmin.PAP;
 import nl.uva.sne.daci.tenant.tenantadmin.TenantSvc;
 import nl.uva.sne.daci.tenant.tenantadmin.TenantSvcImpl;
+import java.util.Map;
+
+import javax.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestMethod;
-//import org.springframework.web.bind.annotation.ExceptionHandler; 
 
 import org.springframework.web.multipart.MultipartFile;
+
+
 
 
 /*** TODO : Add logging here ...*/
 @RestController
 @EnableAutoConfiguration
-public class TenantSrvController{
-
-	PAP pap;
-     
-	
+public class TenantSrvController{	
 	
     /***********    POLICY MANAGEMENT *********/
 	    
     /*Upload Provider policies ...*/
 	@PostMapping("/providerPolicy")
-    public /*List<String>*/void providerPolicy(@RequestParam(value="providerId", defaultValue="provider") String providerId,
-    										   @RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
-    									  	   @RequestParam(value="domain", defaultValue="demo-uva") String domain,
+    public /*List<String>*/void providerPolicy(@RequestParam(value="redisAddress") String redisAddress,
+    									  	   @RequestParam(value="domain") String domain,
     									  	   @RequestParam(value="policy") MultipartFile policyFile) {
     	try {
-    		/*TODO Here there should be a way of checking the provider, i.e. if she is stored in redis*/
-    		pap =  new PAP(domain);    		
+    		/*Providers are identified by the "domain" name*/
+    		PAP pap =  new PAP(domain);    		
   	      	pap.setProviderPolicy(redisAddress, new ByteArrayInputStream(policyFile.getBytes()));
     	}catch(Exception e) {
 			throw new RuntimeException("Couldn't set the Provider policies", e);
@@ -55,12 +58,13 @@ public class TenantSrvController{
  
     /*Upload intertenant policies ...*/
 	@PostMapping("/intertenantPolicy")
-    public /*List<String>*/void intertenantPolicy(@RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
-	  		  									  @RequestParam(value="domain", defaultValue="demo-uva") String domain,
+    public /*List<String>*/void intertenantPolicy(@RequestParam(value="tenantId") String tenantId,
+    											  @RequestParam(value="redisAddress") String redisAddress,
+	  		  									  @RequestParam(value="domain") String domain,
 	  		  									  @RequestParam(value="policy") MultipartFile policyFile) {
     	try {
-    		pap =  new PAP(domain);    		
-  	      	pap.setIntertenantPolicy(redisAddress, new ByteArrayInputStream(policyFile.getBytes()));
+    		PAP pap =  new PAP(domain);    		
+  	      	pap.setIntertenantPolicy(tenantId, redisAddress, new ByteArrayInputStream(policyFile.getBytes()));
     	}catch(Exception e) {
 			throw new RuntimeException("Couldn't set the Trust policies", e);
 		}
@@ -69,20 +73,20 @@ public class TenantSrvController{
     
     /*Upload intratenant policies ...*/
 	@PostMapping("/tenantUserPolicy")
-    public /*List<String>*/void tenantUserPolicy(@RequestParam(value="tenantId", defaultValue="tenant") String tenantId,
-    											 @RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
-	  		  									 @RequestParam(value="domain", defaultValue="demo-uva") String domain,
+    public /*List<String>*/void tenantUserPolicy(@RequestParam(value="tenantId") String tenantId,
+    											 @RequestParam(value="redisAddress") String redisAddress,
+	  		  									 @RequestParam(value="domain") String domain,
 	  		  									 @RequestParam(value="policy") MultipartFile policyFile) {
     	try {
     		/*Here there should be a way of checking if the tenant is stored registered already (i.e. stored in redis)*/
     		TenantSvcImpl tsc = new TenantSvcImpl(redisAddress, domain);
     		if (!tsc.checkTenant(tenantId)){
-    			//System.out.println("Couldn't find the tenant");
+    			System.out.println("Couldn't find the tenant");
     			//System.err.println("Couldn't find the tenant");
     			return;
     		};
-    		pap =  new PAP(domain);    		
-  	      	pap.setIntratenantPolicy(redisAddress, new ByteArrayInputStream(policyFile.getBytes()));
+    		PAP pap =  new PAP(domain);    		
+  	      	pap.setIntratenantPolicy(tenantId,redisAddress, new ByteArrayInputStream(policyFile.getBytes()));
     	}catch(Exception e) {
 			throw new RuntimeException("Couldn't set the User policies", e);
 		}
@@ -97,79 +101,38 @@ public class TenantSrvController{
 	  @RequestMapping(
 				value = "/tenants",
 		    	method = RequestMethod.POST,
-		    	consumes = { "application/*", "text/*"},
-		    	produces = { "application/*", "text/*"}
+		    	consumes = { "application/json",  "application/xml"},
+				produces = { "application/json",  "application/xml"}
 				 )
-	  //@ExceptionHandler(IOException.class)
-	  //@ExceptionHandler(Exception.class)
 	  //@PostMapping("/tenants")
-	  public boolean tenantCreation(@RequestParam(value="redisAddress"/*, defaultValue="localhost"*/) String redisAddress,
-									 @RequestParam(value="domain"/*, defaultValue="demo-uva"*/) String domain,
-									 @RequestParam(value="tenantId"/*, defaultValue="tenant"*/) String tenantId/*,
-									 @RequestParam(value="request") AuthzRequest request*/) {
-		  	
+	  public boolean tenantCreation(@RequestBody Map<String,String> body) {
 		  try {
-			  TenantSvc tsc = new TenantSvcImpl(redisAddress, domain);
-			  System.out.println("redis :"+redisAddress + "  domain:"+domain + " tenantId:"+tenantId);
-			  return tsc.createTenant(tenantId);
+			  TenantSvc tsc = new TenantSvcImpl(body.get("redisAddress"), body.get("domain"));
+			  return tsc.createTenant(body.get("tenantId"));
 			}catch(Exception e) {
 				throw new RuntimeException("Couldn't add the tenant", e);
 			}
-		 
-		  //ev = new Evaluator(redisAddress, domain);
-		  //return ev.checkAuthorization(tenantId, request);
-	}
+	  }
   
 	  
-	  
-	  
-	  /*Tenant Removal*/
-	  /*@RequestMapping(
+	  /*Tenant Removal; just for fun, the parameters are in the header */
+	  @RequestMapping(
 				value = "/tenants",
-		    	method = RequestMethod.DELETE,
-				consumes = { "application/json",  "application/xml"},
-				produces = { "application/json",  "application/xml"}
-				 )*/
-	  //@ExceptionHandler(IOException.class)
-	  //@ExceptionHandler(Exception.class)
-	  @DeleteMapping("/tenants")
-	  public boolean tenantDeletion(@RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
-									 @RequestParam(value="domain", defaultValue="demo-uva") String domain,
-									 @RequestParam(value="tenantId", defaultValue="tenant") String tenantId/*,
-									 @RequestParam(value="request") AuthzRequest request*/) {
-		  	
+		    	method = RequestMethod.DELETE
+				 )
+	  //@DeleteMapping("/tenants")
+	  public boolean tenantDeletion(@RequestParam(value="tenantId") String tenantId,
+				 					@RequestParam(value="redisAddress") String redisAddress,
+				 					@RequestParam(value="domain") String domain)
+	  {
+		 
 		  try {
 			  TenantSvc tsc = new TenantSvcImpl(redisAddress, domain);
 			  return tsc.removeTenant(tenantId);
 			}catch(Exception e) {
 				throw new RuntimeException("Couldn't remove the tenant", e);
 			}
-		  
-		  //ev = new Evaluator(redisAddress, domain);
-		  //return ev.checkAuthorization(tenantId, request);
 	}  
 
-	  
-	  @RequestMapping(
-	  			value = "/tenants/hello",
-		    	method = RequestMethod.POST,
-				consumes = {"application/*"},
-				produces = {"application/*"}
-	  			 )
-	  //@ExceptionHandler(IOException.class)
-	  //@ExceptionHandler(Exception.class)
-	  //@PostMapping("/tenants/hello")
-	  public String hello(/*@RequestBody*/@RequestParam(value="redisAddress", defaultValue="localhost") String redisAddress,
-						  @RequestParam(value="domain", defaultValue="demo-uva") String domain,
-					 	  @RequestParam(value="tenantId"/*, defaultValue="tenant"*/) String tenantId
-									 ) {
-		  try {
-			  System.out.println("Hello: Tenant Service --> Address:" + redisAddress);
-			  return "Hello: Tenant Service --> Address:" + redisAddress;// + " Domain:" + domain + " tenantId:"+ tenantId;
-		  }catch(Exception e) {
-				throw new RuntimeException("Couldn't get the message", e);
-		  }
-
-	  }
      
 }

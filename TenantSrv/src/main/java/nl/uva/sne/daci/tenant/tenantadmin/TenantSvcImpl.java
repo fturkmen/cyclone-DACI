@@ -6,6 +6,7 @@ package nl.uva.sne.daci.tenant.tenantadmin;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,25 +85,30 @@ public class TenantSvcImpl implements TenantSvc {
 		Jedis jedis = new Jedis(redisAddress);
 		try{
 			String strTenants = jedis.get(tenantListConfigKey);
-			if (strTenants == null) return true;
-			int index = strTenants.indexOf(tenantId);
-			if (checkTenant(tenantId)){
-				if (index + tenantId.length() == strTenants.length()) 
-					strTenants = strTenants.substring(0, index-1); 
-				else 
-					strTenants = strTenants.substring(0, index-1) + 
-								 strTenants.substring(index+tenantId.length(), strTenants.length());
-				jedis.set(tenantListConfigKey, strTenants);
-				logger.info("Removed tenant " + tenantId + " from " + tenantListConfigKey);
-				return true;
-			} 
+			if (strTenants == null || strTenants.indexOf(tenantId) == -1) return false;
+			if (tenantId.length() == strTenants.length())
+				jedis.del(tenantListConfigKey);
+			else{
+				String[] tenants = StringUtils.split(strTenants, ";");
+				String[] tenants_new = new String[tenants.length - 1];
+				int j = 0;
+				for (String t : tenants) 
+					if (!t.equals(tenantId)){ 
+						tenants_new[j++] = t;
+					}
+				jedis.set(tenantListConfigKey, StringUtils.join(tenants_new,";"));
+			}
+			logger.info("Removed tenant " + tenantId + " from " + tenantListConfigKey);
+			System.out.println("Removed tenant " + tenantId + " from " + tenantListConfigKey);
+			return true;
+	
 		}finally{		
 			jedis.disconnect();
 		}
-		
-		return false;
+	
 	}
 
+	
 	public boolean checkTenant(String tenantId) {
 		logger.info("Checking the tenant with Id: {}", tenantId);
 		Jedis jedis = new Jedis(redisAddress);
@@ -111,13 +117,13 @@ public class TenantSvcImpl implements TenantSvc {
 			int index = strTenants.indexOf(tenantId);
 			if (index != -1) return true;
 			
+			
 		}finally{		
 			jedis.disconnect();
 		}
 		
 		return false;
 	}
-	
 	
 	
 /*	 (non-Javadoc)
@@ -137,7 +143,7 @@ public class TenantSvcImpl implements TenantSvc {
 	public static void main(String[] args){
 		TenantSvcImpl imp = new TenantSvcImpl("localhost", "demo-uva");
 		//imp.createTenant("tenant1");
-		imp.removeTenant("tenant1");
+		imp.removeTenant("tenant2");
 		
 	}
 	

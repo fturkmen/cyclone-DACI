@@ -40,10 +40,10 @@ public class DemoRestClient {
 	public static void main(String[] args) {
         DemoRestClient restClient = new DemoRestClient();
         try {
-        	restClient.createTenant("Energy_Tenant1");
-        	restClient.setPolicy(providerPolicy, "providerPolicy");
-        	restClient.setPolicy(intertenantPolicy, "intertenantPolicy");
-        	restClient.setPolicy(intratenantPolicy, "tenantUserPolicy");
+        	restClient.createTenant("Energy_Tenant1", "localhost", "demo-uva");
+        	restClient.setPolicy("Energy_Tenant1", providerPolicy, "providerPolicy", "localhost", "demo-uva");
+        	restClient.setPolicy("Energy_Tenant1", intertenantPolicy, "intertenantPolicy", "localhost", "demo-uva");
+        	restClient.setPolicy("Energy_Tenant1", intratenantPolicy, "tenantUserPolicy", "localhost", "demo-uva");
         	
         	AuthzRequest ar = createRequest("a", "listPowerPlants", "execute");	
         	if (restClient.readPrivateData_Integrated(ar, "Energy_Tenant1")) 
@@ -102,7 +102,7 @@ public class DemoRestClient {
 	
 	
 
-	private void  setPolicy(String policyFile, String endPoint) throws Exception {
+	private void  setPolicy(String tenantId, String policyFile, String endPoint, String redisAddress, String domain) throws Exception {
 		
 		String output = null;
         String url = "http://localhost:8092/" + endPoint;
@@ -114,8 +114,9 @@ public class DemoRestClient {
             //mPost.setHeader("Content-Type", "application/xml");
             //mPost.setHeader("accept", "application/xml");
             
-            mPost.setEntity(new StringEntity("localhost"));
-            mPost.setEntity(new StringEntity("demo-uva"));
+            mPost.setEntity(new StringEntity(tenantId));
+            mPost.setEntity(new StringEntity(redisAddress));
+            mPost.setEntity(new StringEntity(domain));
             
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             File f = new File(policyFile);
@@ -148,7 +149,7 @@ public class DemoRestClient {
 
 
 
-	private void  createTenant(String tenantId) throws Exception {
+	private void  createTenant(String tenantId, String redisAddress, String domain) throws Exception {
 		
 		String output = null;
         String url = "http://localhost:8092/tenants";
@@ -160,8 +161,8 @@ public class DemoRestClient {
         	//mPost.setHeader("Content-Type", "application/json");
             //mPut.setHeader("accept", "application/json");
             
-        	mPost.setEntity(new StringEntity("localhost"));
-        	mPost.setEntity(new StringEntity("demo-uva"));
+        	mPost.setEntity(new StringEntity(redisAddress));
+        	mPost.setEntity(new StringEntity(domain));
         	mPost.setEntity(new StringEntity(tenantId));
             //FileEntity entity = new FileEntity(new File(policyFile));
             //entity.setContentType(ContentType.APPLICATION_XML.getMimeType());
