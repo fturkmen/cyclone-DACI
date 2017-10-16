@@ -42,7 +42,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class TokenSrvController{
 
   TokenSvcImpl tsc;
-   
+  
+  private static String baseDir = "tokenSrvFiles/";
+  private static String keyAlias = "tokensvc";
+  private static String keyPasswd = "tokensvc-cloud";
+  private static String keyStoreFile = "tokensvc-keystore.jks";
+  private static String storePasswd = "cloudsecurity";
+  private static String trustedKeyStore = "trusted-keystore.jks";
+  private static String trustedKeyStorePasswd = "trusted";
+  
+  
+  
   @RequestMapping(
 			value = "tokens",
 	    	method = RequestMethod.POST,
@@ -54,13 +64,13 @@ public class TokenSrvController{
   public String validation(@RequestBody String token) {
 	  try {
 		  tsc = new TokenSvcImpl();
-		  tsc.setBaseDir("tokenSrvFiles/");
-		  tsc.setKeyAlias("tokensvc");
-		  tsc.setKeyPassword("tokensvc-cloud");
-		  tsc.setKeyStore("tokensvc-keystore.jks");
-		  tsc.setKeyStorePassword("cloudsecurity");
-		  tsc.setTrustedKeyStore("trusted-keystore.jks");
-		  tsc.setTrustedKeyStorePassword("trusted");
+		  tsc.setBaseDir(baseDir);
+		  tsc.setKeyAlias(keyAlias);
+		  tsc.setKeyPassword(keyPasswd);
+		  tsc.setKeyStore(keyStoreFile);
+		  tsc.setKeyStorePassword(storePasswd);
+		  tsc.setTrustedKeyStore(trustedKeyStore);
+		  tsc.setTrustedKeyStorePassword(trustedKeyStorePasswd);
 			
 		  tsc.init();
 		  
@@ -92,13 +102,13 @@ public class TokenSrvController{
 	  
 	  try {
 		  tsc = new TokenSvcImpl();
-		  tsc.setBaseDir("tokenSrvFiles/");
-		  tsc.setKeyAlias("tokensvc");
-		  tsc.setKeyPassword("tokensvc-cloud");
-		  tsc.setKeyStore("tokensvc-keystore.jks");
-		  tsc.setKeyStorePassword("cloudsecurity");
-		  tsc.setTrustedKeyStore("trusted-keystore.jks");
-		  tsc.setTrustedKeyStorePassword("trusted");
+		  tsc.setBaseDir(baseDir);
+		  tsc.setKeyAlias(keyAlias);
+		  tsc.setKeyPassword(keyPasswd);
+		  tsc.setKeyStore(keyStoreFile);
+		  tsc.setKeyStorePassword(storePasswd);
+		  tsc.setTrustedKeyStore(trustedKeyStore);
+		  tsc.setTrustedKeyStorePassword(trustedKeyStorePasswd);
 			
 		  tsc.init();
 		  String token = tsc.issueGrantToken(tenantId, request, userKeyInfo);

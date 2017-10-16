@@ -59,6 +59,7 @@ public class GrantTokenVerifier {
         // Validate the XMLSignature (generated above)
         boolean coreValidity = signature.validate(valContext); 
 
+        
         // Check core validation status
         if (coreValidity == false) {
             log.error("Signature failed core validation"); 
